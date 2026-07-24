@@ -12,7 +12,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run Mac Compilation Script
-        run: bash build_mac.sh
+        run: make -f Src/Mac.mak
 
       - name: Upload Finished Mac Executable
         uses: actions/upload-artifact@v4
