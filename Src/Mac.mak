@@ -5,8 +5,8 @@ CODENAME     = PyCity
 PROJECT_RELEASE = $(VERSION).$(PATCHLEVEL).$(SUBLEVEL)
 
 CC       = gcc
-INCLUDES = -ISrc/include
-LDFLAGS  = -LSrc/lib
+INCLUDES = -ISrc/include -I/opt/homebrew/include
+LDFLAGS  = -L/opt/homebrew/lib
 LIBS     = -lraylib -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo
 TARGET   = PyCity
 
