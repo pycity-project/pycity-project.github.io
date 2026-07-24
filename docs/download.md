@@ -4,7 +4,7 @@
 
 [Download latest build — .zip](https://github.com/pycity-project/pycity-project.github.io/releases/latest/download/pycity-win64.zip)
 
-[Download Beta/Alpha — .zip](https://github.com/pycity-project/pycity-project.github.io/releases/download/v0.0.1/pycity-win64.zip)
+[Download Beta/Alpha — .zip](https://github.com/pycity-project/pycity-project.github.io/releases/download/v0.0.2/pycity-win64.zip)
 
 | Version | Notes |
 |---|---|

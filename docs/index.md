@@ -6,6 +6,7 @@ A road-building city sim. Zone the city, connect it, keep traffic moving.
 
 ## News
 
+- **v0.2** — Second playable build with Assets.
 - **v0.1** — First playable build.
 
 ## Status
