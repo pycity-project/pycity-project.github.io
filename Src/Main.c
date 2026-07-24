@@ -1,16 +1,20 @@
-// PyCity - first build
+// PyCity - second build
 // A top-down tile-grid city sim: place roads and buildings, trucks path
 // between buildings automatically along the road network.
 //
 // Controls:
 //   1 = Road tool     2 = House tool     3 = Factory tool     4 = Bulldoze
 //   Left click        = place/remove on hovered tile
-//   Right click / drag pan is not needed, map fits on screen
 //   Space             = pause/unpause truck simulation
 //   Esc               = quit
 //
 // Build: gcc main.c -o pycity -Iraylib/src -Lraylib/src -lraylib -lm -lpthread -ldl -lrt -lX11
 // Run:   ./pycity
+//
+// Assets expected at (relative to the working directory you run ./pycity from):
+//   assets/tile_0025.png  -> road
+//   assets/tile_0100.png  -> house
+//   assets/tile_0073.png  -> factory
 
 #include "raylib.h"
 #include <stdlib.h>
@@ -27,10 +31,14 @@
 #define MAX_BUILDINGS 64
 #define MAX_PATH (COLS*ROWS)
 
-typedef enum { TILE_EMPTY = 0, TILE_ROAD, TILE_HOUSE, TILE_FACTORY } TileType;
+typedef enum { TILE_EMPTY = 0, TILE_ROAD, TILE_HOUSE, TILE_FACTORY, TOTAL_TILE_TYPES } TileType;
 typedef enum { TOOL_ROAD = 0, TOOL_HOUSE, TOOL_FACTORY, TOOL_BULLDOZE } Tool;
 
 static TileType grid[ROWS][COLS];
+
+// Textures indexed by TileType. gameAssets[TILE_EMPTY] is left blank on
+// purpose (empty tiles are just drawn as a flat grass color, no art needed).
+static Texture2D gameAssets[TOTAL_TILE_TYPES];
 
 typedef struct {
     int r, c;
@@ -226,9 +234,55 @@ static void RemoveBuildingAt(int r, int c) {
     }
 }
 
+// Loads a texture for a tile type and warns (without crashing) if it's missing.
+static void LoadTileAsset(TileType type, const char *path) {
+    Texture2D tex = LoadTexture(path);
+    if (tex.id == 0) {
+        TraceLog(LOG_WARNING, "PyCity: failed to load '%s' - falling back to flat color for this tile", path);
+    }
+    gameAssets[type] = tex;
+}
+
+static void LoadAllAssets(void) {
+    // TILE_EMPTY intentionally has no texture - it's drawn as flat grass color.
+    gameAssets[TILE_EMPTY] = (Texture2D){ 0 };
+    LoadTileAsset(TILE_ROAD,    "assets/tile_0025.png");
+    LoadTileAsset(TILE_HOUSE,   "assets/tile_0100.png");
+    LoadTileAsset(TILE_FACTORY, "assets/tile_0073.png");
+}
+
+static void UnloadAllAssets(void) {
+    for (int i = 0; i < TOTAL_TILE_TYPES; i++) {
+        if (gameAssets[i].id != 0) UnloadTexture(gameAssets[i]);
+    }
+}
+
+// Draws one tile: the loaded texture if it exists, otherwise a flat color fallback.
+static void DrawTile(TileType type, int x, int y) {
+    Color fallback = (Color){30,38,35,255}; // grass / empty
+    switch (type) {
+        case TILE_ROAD:    fallback = (Color){58,67,64,255};   break;
+        case TILE_HOUSE:   fallback = (Color){76,110,156,255}; break;
+        case TILE_FACTORY: fallback = (Color){255,107,53,255}; break;
+        default: break;
+    }
+
+    Texture2D tex = gameAssets[type];
+    if (tex.id != 0) {
+        Rectangle src = { 0, 0, (float)tex.width, (float)tex.height };
+        Rectangle dst = { (float)x, (float)y, (float)TILE, (float)TILE };
+        DrawTexturePro(tex, src, dst, (Vector2){0,0}, 0.0f, WHITE);
+    } else {
+        DrawRectangle(x, y, TILE-1, TILE-1, fallback);
+    }
+}
+
 int main(void) {
     InitWindow(SCREEN_W, SCREEN_H, "PyCity - alpha");
     SetTargetFPS(60);
+
+    // Textures need a GPU context, so this has to happen after InitWindow().
+    LoadAllAssets();
 
     memset(grid, TILE_EMPTY, sizeof(grid));
     memset(trucks, 0, sizeof(trucks));
@@ -287,14 +341,7 @@ int main(void) {
         for (int rr = 0; rr < ROWS; rr++) {
             for (int cc = 0; cc < COLS; cc++) {
                 int x = cc*TILE, y = TOP_BAR + rr*TILE;
-                Color base = (Color){30,38,35,255};
-                switch (grid[rr][cc]) {
-                    case TILE_ROAD:    base = (Color){58,67,64,255}; break;
-                    case TILE_HOUSE:   base = (Color){76,110,156,255}; break;
-                    case TILE_FACTORY: base = (Color){255,107,53,255}; break;
-                    default: break;
-                }
-                DrawRectangle(x, y, TILE-1, TILE-1, base);
+                DrawTile(grid[rr][cc], x, y);
             }
         }
 
@@ -308,6 +355,7 @@ int main(void) {
         EndDrawing();
     }
 
+    UnloadAllAssets();
     CloseWindow();
     return 0;
 }
