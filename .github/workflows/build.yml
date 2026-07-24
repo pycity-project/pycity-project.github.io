@@ -27,4 +27,4 @@ jobs:
         with:
           name: PyCity-Mac-Build
           path: |
-            PyCity.app
+            PyCity.app/
